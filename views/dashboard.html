@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainfall Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/WheaterApp/styles.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="container">
+            <h1 class="mt-4">Rainfall Dashboard</h1>
+
+            <!-- Rainfall Line Chart -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    Rainfall Comparison
+                </div>
+                <div class="card-body">
+                    <canvas id="rainfallChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Total Rainfall -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    Total Rainfall
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Current Year: <span id="currentYearTotal">0 mm</span></h5>
+                    <h5 class="card-title">Previous Year: <span id="previousYearTotal">0 mm</span></h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JS, Popper.js, and jQuery -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <!-- Custom JS -->
+        <script src="/WheaterApp/index.js"></script>
+    </div>
+</body>
+</html>
