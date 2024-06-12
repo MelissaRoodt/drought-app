@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Example data, replace with your actual data
+    // Dummy data for line chart
     const currentYearRainfall = [10, 20, 15, 25, 30, 40, 50, 60, 55, 45, 35, 25];
     const previousYearRainfall = [5, 15, 10, 20, 25, 35, 45, 50, 40, 35, 30, 20];
 
@@ -48,6 +48,72 @@ document.addEventListener('DOMContentLoaded', function () {
                         text: 'Rainfall (mm)'
                     }
                 }
+            }
+        }
+    });
+
+    // Dummy data for pie chart
+    const pieChartData = {
+        labels: ['Reserve 1', 'Reserve 2', 'Reserve 3'],
+        datasets: [{
+            data: [300, 450, 600],
+            backgroundColor: ['#ff6384', '#36a2eb', '#ffce56'],
+            hoverBackgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
+        }]
+    };
+
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    const pieChart = new Chart(pieCtx, {
+        type: 'pie',
+        data: pieChartData,
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'Emergency Water Supply Reserves'
+            }
+        }
+    });
+
+    // Dummy data for bar chart
+    const barChartData = {
+        labels: ['Region A', 'Region B', 'Region C', 'Region D', 'Region E'],
+        datasets: [{
+            label: 'Population Facing Drought',
+            data: [5000, 7000, 3000, 9000, 4000],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    const barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: barChartData,
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        beginAtZero: true
+                    }
+                },
+                y: {
+                    grid: {
+                        display: true
+                    },
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }
+            },
+            title: {
+                display: true,
+                text: 'Population Facing Drought by Region'
             }
         }
     });

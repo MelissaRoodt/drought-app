@@ -10,37 +10,90 @@
 </head>
 <body>
     <div class="dashboard">
+        <h1 class="dashboard-header">Dashboard</h1>
         <div class="container">
-            <h1 class="mt-4">Rainfall Dashboard</h1>
+            <div class="grid-container">
+                <!-- Rainfall Line Chart -->
+                <div class="item line-chart">
+                    <div class="card">
+                        <div class="card-header">
+                            Rainfall Comparison
+                        </div>
+                        <div class="card-body">
+                            <canvas id="rainfallChart"></canvas>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Rainfall Line Chart -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    Rainfall Comparison
+                <!-- Bar Chart -->
+                <div class="item bar-chart">
+                    <div class="card">
+                        <div class="card-header">
+                            Population Facing Drought
+                        </div>
+                        <div class="card-body">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="rainfallChart"></canvas>
-                </div>
-            </div>
 
-            <!-- Total Rainfall -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    Total Rainfall
+                <!-- Pie Chart -->
+                <div class="item pie-chart">
+                    <div class="card">
+                        <div class="card-header">
+                            Emergency Water Supply Reserves
+                        </div>
+                        <div class="card-body">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <h5 class="card-title">Current Year: <span id="currentYearTotal">0 mm</span></h5>
-                    <h5 class="card-title">Previous Year: <span id="previousYearTotal">0 mm</span></h5>
+
+                <!-- Total waterfall, total reseviour water, total water usag-->
+                <div class="item totals">                
+                    <div class="item total-rainfall">
+                        <div class="card">
+                            <div class="card-header">
+                                Total Rainfall
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">Current Year: <span id="currentYearTotal">0 mm</span></h5>
+                                <h5 class="card-title">Previous Year: <span id="previousYearTotal">0 mm</span></h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item total-reseviour">
+                        <div class="card">
+                            <div class="card-header">
+                                Total Resevious Storage
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title"><span id="currentReseviourTotal">88%</span></h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item total-water-usage">
+                        <div class="card">
+                            <div class="card-header">
+                                Water Usage
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title"><span id="currentMonthTotal">22%</span></h5>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Bootstrap JS, Popper.js, and jQuery -->
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        <!-- Custom JS -->
-        <script src="/DroughtApp/drought-app/index.js"></script>
     </div>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/DroughtApp/drought-app/index.js"></script>
 </body>
 </html>
