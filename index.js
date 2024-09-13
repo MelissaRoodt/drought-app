@@ -45,12 +45,16 @@ app.get("/", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("home.ejs");
     } else {
-        res.redirect("/login");
+        res.redirect("/register");
     }
 });
 
 app.get("/login", (req, res) => {
     res.render("login.ejs");
+});
+
+app.get("/register", (req, res) => {
+    res.render("register.ejs");
 });
 
 //Local login Route
@@ -83,6 +87,48 @@ app.get("/logout", (req, res) => {
         }
         res.redirect("/");
     });
+});
+
+// Local register Strategy
+app.post("/register", async (req, res) => {
+    const email = req.body.username;
+    const password = req.body.password;
+    const re_password = req.body.passwordRepeated;
+
+    if(password === re_password){
+        try{
+            const checkResults = await db.query("SELECT * FROM users WHERE email = $1", 
+                [email]
+            );
+            if(checkResults.rows.length > 0){
+                res.render("login.ejs", {error: "Email already exist try logging in"});
+            }else{
+                //password hashing
+                bcrypt.hash(password, saltRounds, async (err, hash) => {
+                    if(err) {
+                        console.log(err);
+                    }else{
+                        const result = await db.query("INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *", 
+                            [email, hash] 
+                         );
+                         const user = result.rows[0];
+                         req.login(user, (err) => {
+                            if(err) {
+                                console.log(err);
+                            }
+                            currentUser = user.user_id;
+                            res.redirect("/");
+                         });
+                    }
+                });  
+            }
+        }catch (err) {
+            console.error('Error registering user:', err);
+            res.status(500).send("Internal Server Error");
+        }
+    }else{
+        res.render("register.ejs", {error: "Passwords are not identical."});
+    }
 });
 
 // Local login Strategy
