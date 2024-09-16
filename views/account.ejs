@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Settings</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body style="background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">User Settings</h1>
+
+        <!-- Change Password Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Change Password</h5>
+            </div>
+            <div class="card-body">
+                <form action="/update-password" method="POST">
+                    <div class="form-group">
+                        <label for="current-password">Current Password:</label>
+                        <input type="password" class="form-control" id="current-password" name="current-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" class="form-control" id="new-password" name="new-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password:</label>
+                        <input type="password" class="form-control" id="confirm-password" name="confirm-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Update Email Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Update Email Address</h5>
+            </div>
+            <div class="card-body">
+                <form action="/update-email" method="POST">
+                    <div class="form-group">
+                        <label for="new-email">New Email Address:</label>
+                        <input type="email" class="form-control" id="new-email" name="new-email" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Email</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modify Personal Information Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Modify Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <form action="/update-info" method="POST">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address:</label>
+                        <textarea class="form-control" id="address" name="address"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Information</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Manage Notification Preferences Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Manage Notification Preferences</h5>
+            </div>
+            <div class="card-body">
+                <form action="/update-notifications" method="POST">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="email-notifications" name="email-notifications">
+                        <label class="form-check-label" for="email-notifications">Email Notifications</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="sms-notifications" name="sms-notifications">
+                        <label class="form-check-label" for="sms-notifications">SMS Notifications</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="push-notifications" name="push-notifications">
+                        <label class="form-check-label" for="push-notifications">Push Notifications</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Save Preferences</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Account Section -->
+        <div class="card border-danger mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Delete Account</h5>
+            </div>
+            <div class="card-body">
+                <form action="/delete-account" method="POST" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+                    <button type="submit" class="btn btn-danger">Delete Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

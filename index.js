@@ -207,6 +207,14 @@ passport.deserializeUser((user, cb) => {
     cb(null, user);
 });
 
+/**=================================================
+ * Account 
+ ===================================================*/
+ app.get("/account", (req, res) => {
+    res.render("account.ejs");
+});
+
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
