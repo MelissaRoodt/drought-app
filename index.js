@@ -221,7 +221,7 @@ app.get("/delete", async (req, res) => {
 
             if (resultReview.rowCount === 0) {
                 console.log(`No user deleted with id ${req.params.id}`);
-                res.status(404).send('Fucktard not found');
+                res.status(404).send('User not found');
                 return;
             }
             res.redirect("/Logout");
