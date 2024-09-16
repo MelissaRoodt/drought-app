@@ -214,6 +214,27 @@ app.get("/account", (req, res) => {
     res.render("account.ejs");
 });
 
+app.get("/delete", async (req, res) => {
+    if(req.isAuthenticated()){
+        try {
+            const resultReview = await db.query("DELETE FROM users WHERE user_id = " + currentUser);
+
+            if (resultReview.rowCount === 0) {
+                console.log(`No user deleted with id ${req.params.id}`);
+                res.status(404).send('User not found');
+                return;
+            }
+            res.redirect("/Logout");
+        } catch (err) {
+            console.error('Error deleting user:', err);
+            res.status(500).send('Internal Server Error');
+        }
+
+    }else{
+        res.redirect("/login");
+    }
+})
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

@@ -18,6 +18,9 @@
                         </div>
 
                         <div class="card-body p-5">
+
+                            <h2 class = "text-left mb-4 display-6">User Details</h2>
+
                             <div class="mb-3">
                                 <input type="email" class="form-control p-2" placeholder="Enter Email" id="email" name="username" required>
                                 <div class="invalid-feedback">
@@ -46,8 +49,21 @@
                                 </div>
                             <% } %>
 
+                            <h2 class = "text-left mb-4 display-6">Notification Preferences</h2>
+
                             <div class="mb-3">
-                                <input type="checkbox" class="form-check-input">
+                                <input type="radio" class="form-check-input" name="notification_type">
+                                <label type="form-label" class="text-secondary"><span class="text-light"> Email </span>Notification</label>
+                            </div>
+                            <div class="mb-3">
+                                <input type="radio" class="form-check-input" name="notification_type">
+                                <label type="form-label" class="text-secondary"><span class="text-light"> SMS </span>Notification</label>
+                            </div>
+
+                            <h2 class = "text-left mb-4 display-6">Acknowledgements</h2>
+
+                            <div class="mb-3">
+                                <input type="checkbox" class="form-check-input" required>
                                 <label type="form-label" class="text-secondary"> I agree to the <a href="#" class="text-light text-decoration-none">Terms of Services</a></label>
                             </div>
 
@@ -59,7 +75,7 @@
                             </div>
 
                             <div>
-                                <label type="form-label" class="text-secondary">Already have an account? <a href="/login" class="text-light text-decoration-none">Login here</a></label>
+                                <label type="form-label" class="text-secondary">Already have an account? <a href="/" class="text-light text-decoration-none">Login here</a></label>
                             </div>
                         </div>
                     </div>
