@@ -45,7 +45,7 @@ app.get("/", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("home.ejs");
     } else {
-        res.redirect("/register");
+        res.redirect("/login");
     }
 });
 
