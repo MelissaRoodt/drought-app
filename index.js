@@ -208,6 +208,92 @@ passport.deserializeUser((user, cb) => {
 });
 
 /**=================================================
+ * Biometric stuff
+===================================================*/
+
+import { Fido2Lib } from "fido2-lib";
+
+const fido = new Fido2Lib({
+    timeout: 60000,
+    rpId: "localhost",
+    rpName: "MyApp",
+    rpIcon: "https://example.com/logo.png",
+    challengeSize: 32,
+    attestation: "direct",
+    cryptoParams: [-7, -257],
+});
+
+let registeredUsers = {};
+ 
+
+app.post("/register-biometrics", async (req, res) => {
+    const { username } = req.body;
+    if (!username) return res.status(400).send("Username is required");
+ 
+    const userId = username;
+    const challenge = await fido.attestationOptions();
+    registeredUsers[userId] = { challenge };
+ 
+    
+    res.json(challenge);
+});
+ 
+app.post("/register-biometrics/complete", async (req, res) => {
+    const { username, attestation } = req.body;
+    const userId = username;
+    if (!registeredUsers[userId]) return res.status(400).send("User not found");
+ 
+    try {
+        const result = await fido.attestationResult(attestation, registeredUsers[userId]);
+ 
+        registeredUsers[userId].id = result.authnrData.get("credId");
+        registeredUsers[userId].publicKey = result.authnrData.get("credentialPublicKey");
+ 
+        res.send("Biometric registration complete!");
+    } catch (err) {
+        console.error("Error during biometric registration:", err);
+        res.status(500).send("Error registering biometrics");
+    }
+});
+ 
+app.post("/login-biometrics", async (req, res) => {
+    const { username } = req.body;
+    const userId = username;
+    if (!registeredUsers[userId]) return res.status(400).send("User not found");
+ 
+    const challenge = await fido.assertionOptions();
+    registeredUsers[userId].challenge = challenge;
+ 
+    res.json(challenge);
+});
+ 
+ 
+app.post("/login-biometrics/complete", async (req, res) => {
+    const { username, assertion } = req.body;
+    const userId = username;
+    if (!registeredUsers[userId]) return res.status(400).send("User not found");
+ 
+    try {
+        const result = await fido.assertionResult(assertion, {
+            challenge: registeredUsers[userId].challenge,
+            credId: registeredUsers[userId].id,
+            publicKey: registeredUsers[userId].publicKey
+        });
+ 
+        
+        req.login(userId, (err) => {
+            if (err) {
+                return res.status(500).send("Error logging in");
+            }
+            res.send("Biometric login successful!");
+        });
+    } catch (err) {
+        console.error("Error during biometric login:", err);
+        res.status(500).send("Biometric login failed");
+    }
+});
+
+/**=================================================
  * Account 
  ===================================================*/
 app.get("/account", (req, res) => {
