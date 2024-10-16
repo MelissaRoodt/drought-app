@@ -166,7 +166,10 @@
         const defaultCity = 'Vanderbijlpark'; // Set your default city here
 
         // NASA Earthdata API - Use the GLDAS dataset for more accurate drought prediction
-        const nasaApiUrl = 'https://search.earthdata.nasa.gov/search/granules?p=C1342986035-GES_DISC&pg[0][v]=f&pg[0][gsk]=-start_date&q=gldas&tl=efGWSTaB5pnk6Z7oHHcr3h9VG4HGcWl6wH3rxSvuk';
+        let lat = 36.30;
+        let lon = 50;
+
+        const nasaApiUrl = `https://api.nasa.gov/planetary/earth/imagery?lon=${lon}&lat=${lat}&date=2014-02-01&api_key=efGWSTaB5pnk6Z7oHHcr3h9VG4HGcWl6wH3rxSvuk`;
         const nasaApiKey = 'efGWSTaB5pnk6Z7oHHcr3h9VG4HGcWl6wH3rxSvuk';
 
         // Initialize map
