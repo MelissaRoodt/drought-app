@@ -58,11 +58,12 @@ app.get("/register", (req, res) => {
     res.render("register.ejs");
 });
 
-//2fa end points
+//2fa end point: Verify initial 2fa !happens once!
 app.get("/2fa/verify", (req, res) => {
-    res.render("2fa.ejs");
+    res.render("2faVerify.ejs");
 });
 
+//2fa end point: Verify 2fa 
 app.get("/2fa/validate", (req, res) => {
     res.render("2fa.ejs");
 });
@@ -271,7 +272,6 @@ app.post("/enable2fa", async (req, res) => {
 
 //verify if the token works !This only happens once!
 app.post("/2fa/verify", async (req, res) => {
-    //optionally we can get user id from frontend
     const token = req.body.token;
 
     try {
@@ -288,23 +288,25 @@ app.post("/2fa/verify", async (req, res) => {
 
             if (verified) {
                 // Update the user record to permanently store the verified secret
-                await db.query("UPDATE users SET secret = $1, temp_secret = NULL WHERE user_id = $2", [secret, currentUser]);
-                res.json({ verified: true });
+                await db.query("UPDATE users SET secret = $1, temp_secret = NULL, has_verified_2fa = $2 WHERE user_id = $3", [secret, true, currentUser]);
+
+                // Redirect the user if the verification is successful
+                return res.redirect("/checkLoginStatus"); // use return to prevent further execution
             } else {
-                res.json({ verified: false });
+                return res.json({ verified: false }); // also use return here
             }
         } else {
-            res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "User not found" }); // use return here as well
         }
     } catch (error) {
         console.error("Error verifying user:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({ message: "Internal Server Error" }); // use return here
     }
 });
 
 //When user logs in, provide a token from their authenticator app, to validate
 app.post("/2fa/validate", async (req, res) => {
-    const token = req.body;
+    const token = req.body.token;
 
     try {
         const result = await db.query("SELECT secret FROM users WHERE user_id = $1", [currentUser]);
@@ -315,12 +317,11 @@ app.post("/2fa/validate", async (req, res) => {
             const tokenValidates = speakeasy.totp.verify({
                 secret: secret,
                 encoding: "base32",
-                token: token,
-                window: 1,  // Adjust window if needed for better tolerance
+                token: token
             });
 
             if (tokenValidates) {
-                res.json({ validated: true });
+                res.redirect("/");
             } else {
                 res.json({ validated: false });
             }
