@@ -20,7 +20,11 @@ html {
     margin-bottom: 15px;
 }
 
-/* Adjusts the map size*/
+#map {
+    height: 350px;
+}
+
+/* Adjusts the of SVG map size*/
 .mapZA {
     width: 500px;
     height: 400px;
