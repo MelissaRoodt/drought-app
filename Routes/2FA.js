@@ -29,7 +29,7 @@ router.get("/2fa/validate", (req, res) => {
 //check if user should go through 2fa
 router.get("/checkLoginStatus", async (req, res) => {
     try {
-        const user_id = currentUser; 
+        const user_id = currentUser;
         // Query to get tfa_enabled
         const tfa_enabled_result = await db.query("SELECT tfa_enabled FROM users WHERE user_id = $1", [user_id]);
         const tfa_enabled = tfa_enabled_result.rows[0]?.tfa_enabled;
@@ -73,10 +73,25 @@ router.post("/enable2fa", async (req, res) => {
     try {
         // Update the user record to permanently store the verified secret
         await db.query("UPDATE users SET tfa_enabled = $1 WHERE user_id = $2", [tfa_enabled, currentUser]);
-        //check value to send email
-        
-        res.redirect("/account?message=2FA%20prefrences%20updated%20successfully");
+
+        // Retrieve the temp_secret from the database
+        const result = await db.query("SELECT temp_secret FROM users WHERE user_id = $1", [currentUser]);
+
+        if (result.rows.length > 0) {
+            const temp_secret = result.rows[0].temp_secret;
+
+            // Redirect to the account page with a success message and temp_secret
+            //res.redirect('/generate-qr');
+            if(tfa_enabled) {
+                res.send(temp_secret);
+            }else{
+                res.redirect(`/account?message=2FA%20preferences%20updated%20successfully`);
+            }
+        }else {
+            res.status(404).json({ message: "User not found" });
+        }
     } catch (error) {
+        console.error(error); // Log the error for debugging
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
@@ -145,4 +160,4 @@ router.post("/2fa/validate", async (req, res) => {
     }
 });
 
-export default(router);
+export default (router);
