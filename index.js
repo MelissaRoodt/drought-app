@@ -67,10 +67,35 @@ app.get("/2fa/validate", (req, res) => {
     res.render("2fa.ejs");
 });
 
+//check if user should go through 2fa
+app.get("/checkLoginStatus", async (req, res) => {
+    try {
+        const user_id = currentUser; 
+        // Query to get tfa_enabled
+        const tfa_enabled_result = await db.query("SELECT tfa_enabled FROM users WHERE user_id = $1", [user_id]);
+        const tfa_enabled = tfa_enabled_result.rows[0]?.tfa_enabled;
+
+        // Query to get has_verified_2fa
+        const has_verified_result = await db.query("SELECT has_verified_2fa FROM users WHERE user_id = $1", [user_id]);
+        const has_verified = has_verified_result.rows[0]?.has_verified_2fa;
+
+        // Redirect logic based on tfa_enabled and has_verified
+        if (tfa_enabled === true && has_verified === false) {
+            return res.redirect("/2fa/verify");
+        } else if (tfa_enabled === true && has_verified === true) {
+            return res.redirect("/2fa/validate");
+        } else {
+            return res.redirect("/");
+        }
+    } catch (error) {
+        res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    }
+});
+
 //Local login Route
 app.post("/login",
     passport.authenticate("local", {
-        successRedirect: "/",
+        successRedirect: "/checkLoginStatus",
         failureRedirect: "/login",
     })
 );
@@ -84,7 +109,7 @@ app.get("/auth/google",
 
 app.get("/auth/google/main",
     passport.authenticate("google", {
-        successRedirect: "/",
+        successRedirect: "/checkLoginStatus",
         failureRedirect: "/login",
     })
 );
@@ -159,7 +184,7 @@ passport.use(new Strategy(async function verify(username, password, cb) {
                 if (err) {
                     return cb(err);
                 } else if (result) {
-                    return cb(null, user);
+                    return cb(null, user);// successfull
                 } else {
                     return cb(null, false); // Password failed
                 }
@@ -232,6 +257,18 @@ passport.use("google",
  * No: Take user to dashboard
  ===================================================*/
 
+//handle post to enable/disable 2fa
+app.post("/enable2fa", async (req, res) => {
+    const tfa_enabled = req.body.tfa_enabled ? true : false;
+    try {
+        // Update the user record to permanently store the verified secret
+        await db.query("UPDATE users SET tfa_enabled = $1 WHERE user_id = $2", [tfa_enabled, currentUser]);
+        res.redirect("/account?message=Password%20updated%20successfully");
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
 //verify if the token works !This only happens once!
 app.post("/2fa/verify", async (req, res) => {
     //optionally we can get user id from frontend
@@ -267,7 +304,7 @@ app.post("/2fa/verify", async (req, res) => {
 
 //When user logs in, provide a token from their authenticator app, to validate
 app.post("/2fa/validate", async (req, res) => {
-    const token  = req.body;
+    const token = req.body;
 
     try {
         const result = await db.query("SELECT secret FROM users WHERE user_id = $1", [currentUser]);
