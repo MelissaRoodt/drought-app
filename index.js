@@ -4,6 +4,7 @@ import env from "dotenv";
 import pg from "pg";
 import session from "express-session";//create user session (cookies)
 import passport from "passport";//used to authenticate
+import { currentUser } from "./Routes/Login.js";
 
 const app = express();
 const port = 3000;
