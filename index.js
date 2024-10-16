@@ -330,9 +330,9 @@ app.listen(port, () => {
  * Google Login (OAuth+Passport)
  * Secure Practices in Code (Enviroment variables)
  * Sessions
+ * Biometric Authentication
  * 
  * Upcoming Features:
  * Password Reset
  * 2FA authentication
- * Biometric Authentication
  */
