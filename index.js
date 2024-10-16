@@ -121,7 +121,5 @@ app.listen(port, () => {
  * Sessions
  * Biometric Authentication
  * Password reset
- * 
- * Upcoming Features:
  * 2FA authentication
  */
