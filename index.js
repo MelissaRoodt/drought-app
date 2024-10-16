@@ -296,8 +296,9 @@ app.post("/login-biometrics/complete", async (req, res) => {
 
 /**=================================================
  * Account 
- ===================================================*/
- app.get("/account", async (req, res) => {
+===================================================*/
+
+app.get("/account", async (req, res) => {
     if (req.isAuthenticated()) {
         try {
             const result = await db.query("SELECT name, phone_number, address FROM users WHERE user_id = $1", [currentUser]);
