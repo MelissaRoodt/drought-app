@@ -3,6 +3,7 @@ import pg from "pg";
 import env from "dotenv";
 import bcrypt from "bcrypt";
 import { currentUser } from "../Routes/Login.js";
+//import { currentUser } from "./Register.js";
 
 const router = express.Router();
 env.config();
