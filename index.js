@@ -264,6 +264,8 @@ app.post("/enable2fa", async (req, res) => {
     try {
         // Update the user record to permanently store the verified secret
         await db.query("UPDATE users SET tfa_enabled = $1 WHERE user_id = $2", [tfa_enabled, currentUser]);
+        //check value to send email
+        
         res.redirect("/account?message=Password%20updated%20successfully");
     } catch (error) {
         res.status(500).json({ message: "Internal Server Error" });
