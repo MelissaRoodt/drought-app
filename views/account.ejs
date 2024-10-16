@@ -43,7 +43,7 @@
                 <a class="nav-link" href="#">Profile</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/accounts">Account</a>
+                <a class="nav-link" href="/account">Account</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
@@ -56,6 +56,8 @@
 
     <div class="container mt-5">
         <h1 class="text-center mb-4">User Settings</h1>
+
+        <div id="success-message" class="alert alert-success" style="display: none;"></div>
 
         <!-- Change Password Section -->
         <div class="card mb-4">
@@ -106,20 +108,21 @@
                 <form action="/update-info" method="POST">
                     <div class="form-group">
                         <label for="name">Name:</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" required>
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number:</label>
-                        <input type="tel" class="form-control" id="phone" name="phone">
+                        <input type="tel" class="form-control" id="phone" name="phone" value="<%= user.phone_number %>">
                     </div>
                     <div class="form-group">
                         <label for="address">Address:</label>
-                        <textarea class="form-control" id="address" name="address"></textarea>
+                        <textarea class="form-control" id="address" name="address"><%= user.address %></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Update Information</button>
                 </form>
             </div>
         </div>
+
 
         <!-- Manage Notification Preferences Section -->
         <div class="card mb-4">
@@ -158,5 +161,28 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Script to handle success message and refresh the page -->
+    <script>
+        // Function to check for query parameters and display success message
+        function showMessageAndRefresh() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+
+            if (message) {
+                const successMessageDiv = document.getElementById('success-message');
+                successMessageDiv.textContent = decodeURIComponent(message);
+                successMessageDiv.style.display = 'block';
+
+                // Automatically refresh the page after 3 seconds
+                setTimeout(() => {
+                    window.location.href = '/account'; // Refresh without query params
+                }, 3000);
+            }
+        }
+
+        // Call the function on page load
+        window.onload = showMessageAndRefresh;
+    </script>
 </body>
 </html>

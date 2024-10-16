@@ -94,40 +94,41 @@ app.post("/register", async (req, res) => {
     const email = req.body.username;
     const password = req.body.password;
     const re_password = req.body.passwordRepeated;
+    const name = req.body.name;
+    const phone_number = req.body.phone_number;
+    const address = req.body.address;
 
-    if(password === re_password){
-        try{
-            const checkResults = await db.query("SELECT * FROM users WHERE email = $1", 
-                [email]
-            );
-            if(checkResults.rows.length > 0){
-                res.render("login.ejs", {error: "Email already exist try logging in"});
-            }else{
-                //password hashing
+    if (password === re_password) {
+        try {
+            const checkResults = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+            if (checkResults.rows.length > 0) {
+                res.render("login.ejs", { error: "Email already exists, try logging in" });
+            } else {
                 bcrypt.hash(password, saltRounds, async (err, hash) => {
-                    if(err) {
+                    if (err) {
                         console.log(err);
-                    }else{
-                        const result = await db.query("INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *", 
-                            [email, hash] 
-                         );
-                         const user = result.rows[0];
-                         req.login(user, (err) => {
-                            if(err) {
+                    } else {
+                        const result = await db.query(
+                            "INSERT INTO users (email, password, name, phone_number, address) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+                            [email, hash, name, phone_number, address]
+                        );
+                        const user = result.rows[0];
+                        req.login(user, (err) => {
+                            if (err) {
                                 console.log(err);
                             }
                             currentUser = user.user_id;
                             res.redirect("/");
-                         });
+                        });
                     }
-                });  
+                });
             }
-        }catch (err) {
-            console.error('Error registering user:', err);
+        } catch (err) {
+            console.error("Error registering user:", err);
             res.status(500).send("Internal Server Error");
         }
-    }else{
-        res.render("register.ejs", {error: "Passwords are not identical."});
+    } else {
+        res.render("register.ejs", { error: "Passwords are not identical." });
     }
 });
 
@@ -296,8 +297,32 @@ app.post("/login-biometrics/complete", async (req, res) => {
 /**=================================================
  * Account 
  ===================================================*/
-app.get("/account", (req, res) => {
-    res.render("account.ejs");
+ app.get("/account", async (req, res) => {
+    if (req.isAuthenticated()) {
+        try {
+            const result = await db.query("SELECT name, phone_number, address FROM users WHERE user_id = $1", [currentUser]);
+
+            if (result.rows.length === 0) {
+                return res.status(404).send("User not found.");
+            }
+
+            const { name, phone_number, address } = result.rows[0];
+
+            // Render the account page and pass user details to the template
+            res.render("account.ejs", {
+                user: {
+                    name: name || "",
+                    phone_number: phone_number || "",
+                    address: address || ""
+                }
+            });
+        } catch (err) {
+            console.error("Error fetching user details:", err);
+            res.status(500).send("Internal Server Error");
+        }
+    } else {
+        res.redirect("/login");
+    }
 });
 
 app.get("/delete", async (req, res) => {
@@ -321,6 +346,70 @@ app.get("/delete", async (req, res) => {
     }
 })
 
+// Modify Personal Information
+app.post("/update-info", async (req, res) => {
+    if (req.isAuthenticated()) {
+        const { name, phone, address } = req.body;
+
+        try {
+            // Update user information in the database
+            await db.query(
+                "UPDATE users SET name = $1, phone_number = $2, address = $3 WHERE user_id = $4",
+                [name, phone, address, currentUser]
+            );
+
+            // Redirect back to the account page with a success message
+            res.redirect("/account?message=Information%20updated%20successfully");
+        } catch (err) {
+            console.error("Error updating personal information:", err);
+            res.status(500).send("Internal Server Error");
+        }
+    } else {
+        res.redirect("/login");
+    }
+});
+
+// Password update
+app.post("/update-password", async (req, res) => {
+    if (req.isAuthenticated()) {
+        const { "current-password": currentPassword, "new-password": newPassword, "confirm-password": confirmPassword } = req.body;
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).send("New passwords do not match.");
+        }
+
+        try {
+            const userResult = await db.query("SELECT * FROM users WHERE user_id = $1", [currentUser]);
+            if (userResult.rows.length === 0) {
+                return res.status(404).send("User not found.");
+            }
+
+            const storedHashPassword = userResult.rows[0].password;
+
+            // Compare the current password with the stored hash
+            const passwordMatch = await bcrypt.compare(currentPassword, storedHashPassword);
+            if (!passwordMatch) {
+                return res.status(400).send("Current password is incorrect.");
+            }
+
+            // Hash the new password
+            const newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update password in the database
+            await db.query("UPDATE users SET password = $1 WHERE user_id = $2", [newHashedPassword, currentUser]);
+
+            // Redirect back to the account page with a success message in the query parameters
+            res.redirect("/account?message=Password%20updated%20successfully");
+        } catch (err) {
+            console.error("Error updating password:", err);
+            res.status(500).send("Internal Server Error");
+        }
+    } else {
+        res.redirect("/login");
+    }
+});
+
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
@@ -331,8 +420,8 @@ app.listen(port, () => {
  * Secure Practices in Code (Enviroment variables)
  * Sessions
  * Biometric Authentication
+ * Password reset
  * 
  * Upcoming Features:
- * Password Reset
  * 2FA authentication
  */
