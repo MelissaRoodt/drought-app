@@ -43,6 +43,30 @@ app.get("/", (req, res) => {
     }
 });
 
+app.get("/home", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("home.ejs");
+    } else {
+        res.redirect("/login");
+    }
+});
+
+app.get("/about", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("about.ejs");
+    } else {
+        res.redirect("/login");
+    }
+});
+
+app.get("/dashboard", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("dashboard.ejs");
+    } else {
+        res.redirect("/login");
+    }
+});
+
 //Logout 
 app.get("/logout", (req, res) => {
     req.logout(function (err) {
