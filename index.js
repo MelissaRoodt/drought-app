@@ -7,6 +7,7 @@ import session from "express-session";//create user session (cookies)
 import passport from "passport";//used to authenticate
 import { Strategy } from "passport-local";//authenticate strategy (local)
 import GoogleStrategy from "passport-google-oauth2";//authenticate strategy (google)
+import speakeasy from "speakeasy";
 
 const app = express();
 const port = 3000;
@@ -57,6 +58,15 @@ app.get("/register", (req, res) => {
     res.render("register.ejs");
 });
 
+//2fa end points
+app.get("/2fa/verify", (req, res) => {
+    res.render("2fa.ejs");
+});
+
+app.get("/2fa/validate", (req, res) => {
+    res.render("2fa.ejs");
+});
+
 //Local login Route
 app.post("/login",
     passport.authenticate("local", {
@@ -95,39 +105,43 @@ app.post("/register", async (req, res) => {
     const password = req.body.password;
     const re_password = req.body.passwordRepeated;
 
-    if(password === re_password){
-        try{
-            const checkResults = await db.query("SELECT * FROM users WHERE email = $1", 
+    if (password === re_password) {
+        try {
+            const checkResults = await db.query("SELECT * FROM users WHERE email = $1",
                 [email]
             );
-            if(checkResults.rows.length > 0){
-                res.render("login.ejs", {error: "Email already exist try logging in"});
-            }else{
+            if (checkResults.rows.length > 0) {
+                res.render("login.ejs", { error: "Email already exist try logging in" });
+            } else {
                 //password hashing
                 bcrypt.hash(password, saltRounds, async (err, hash) => {
-                    if(err) {
+                    if (err) {
                         console.log(err);
-                    }else{
-                        const result = await db.query("INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *", 
-                            [email, hash] 
-                         );
-                         const user = result.rows[0];
-                         req.login(user, (err) => {
-                            if(err) {
+                    } else {
+                        //generate the temp 2fa code
+                        const temp_secret = speakeasy.generateSecret();
+                        const result = await db.query("INSERT INTO users (email, password, temp_secret) VALUES ($1, $2, $3) RETURNING *",
+                            [email, hash, temp_secret.base32]
+                        );
+                        const user = result.rows[0];
+                        req.login(user, (err) => {
+                            if (err) {
                                 console.log(err);
                             }
                             currentUser = user.user_id;
+                            console.log(currentUser);
+                            //res.json({ id: currentUser, secret: temp_secret.base32 });  // Send secret
                             res.redirect("/");
-                         });
+                        });
                     }
-                });  
+                });
             }
-        }catch (err) {
+        } catch (err) {
             console.error('Error registering user:', err);
             res.status(500).send("Internal Server Error");
         }
-    }else{
-        res.render("register.ejs", {error: "Passwords are not identical."});
+    } else {
+        res.render("register.ejs", { error: "Passwords are not identical." });
     }
 });
 
@@ -173,9 +187,12 @@ passport.use("google",
                     profile.email,
                 ]);
                 if (result.rows.length === 0) {
+                    //generate the temp 2fa code
+                    const temp_secret = speakeasy.generateSecret();
+                    //create a new user
                     const newUser = await db.query(
-                        "INSERT INTO users (email, password) VALUES ($1, $2)",
-                        [profile.email, "google"]
+                        "INSERT INTO users (email, password, temp_secret) VALUES ($1, $2, $3)",
+                        [profile.email, "google", temp_secret.base32]
                     );
 
                     // Save the ID of the newly added user
@@ -184,6 +201,7 @@ passport.use("google",
                     ]);
                     if (checkResults.rows.length > 0) {
                         currentUser = checkResults.rows[0].user_id;
+                        console.log(currentUser);
                     }
 
                     return cb(null, newUser.rows[0]);
@@ -197,6 +215,86 @@ passport.use("google",
         }
     )
 );
+
+/**=================================================
+ * 2FA: 
+ * Obtain the temp_secret when login
+ * Verify temp_secret using Authenticator app, store the temp_secret permanently !happens once!
+ * Validate user using Authenticator app 
+ * Go to dashboard
+ * 
+ * Todo:
+ * Check if 2fa enabled
+ * ----First Time
+ * Perform verification process to store data perm
+ * ----N Times
+ * Yes: Take user to 2fa after login
+ * No: Take user to dashboard
+ ===================================================*/
+
+//verify if the token works !This only happens once!
+app.post("/2fa/verify", async (req, res) => {
+    //optionally we can get user id from frontend
+    const token = req.body.token;
+
+    try {
+        const result = await db.query("SELECT temp_secret FROM users WHERE user_id = $1", [currentUser]);
+
+        if (result.rows.length > 0) {
+            const secret = result.rows[0].temp_secret;
+
+            const verified = speakeasy.totp.verify({
+                secret: secret,
+                encoding: "base32",
+                token: token,
+            });
+
+            if (verified) {
+                // Update the user record to permanently store the verified secret
+                await db.query("UPDATE users SET secret = $1, temp_secret = NULL WHERE user_id = $2", [secret, currentUser]);
+                res.json({ verified: true });
+            } else {
+                res.json({ verified: false });
+            }
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        console.error("Error verifying user:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+//When user logs in, provide a token from their authenticator app, to validate
+app.post("/2fa/validate", async (req, res) => {
+    const token  = req.body;
+
+    try {
+        const result = await db.query("SELECT secret FROM users WHERE user_id = $1", [currentUser]);
+
+        if (result.rows.length > 0) {
+            const secret = result.rows[0].secret;
+
+            const tokenValidates = speakeasy.totp.verify({
+                secret: secret,
+                encoding: "base32",
+                token: token,
+                window: 1,  // Adjust window if needed for better tolerance
+            });
+
+            if (tokenValidates) {
+                res.json({ validated: true });
+            } else {
+                res.json({ validated: false });
+            }
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        console.error("Error validating token:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
 
 //Session Management -> save user to local session
 passport.serializeUser((user, cb) => {
@@ -215,7 +313,7 @@ app.get("/account", (req, res) => {
 });
 
 app.get("/delete", async (req, res) => {
-    if(req.isAuthenticated()){
+    if (req.isAuthenticated()) {
         try {
             const resultReview = await db.query("DELETE FROM users WHERE user_id = " + currentUser);
 
@@ -230,7 +328,7 @@ app.get("/delete", async (req, res) => {
             res.status(500).send('Internal Server Error');
         }
 
-    }else{
+    } else {
         res.redirect("/login");
     }
 })
