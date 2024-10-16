@@ -2,6 +2,7 @@ import express from "express";
 import pg from "pg";
 import env from "dotenv";
 import bcrypt from "bcrypt";
+import speakeasy from "speakeasy";
 
 const router = express.Router();
 env.config();
@@ -33,17 +34,21 @@ router.post("/register", async (req, res) => {
 
     if (password === re_password) {
         try {
-            const checkResults = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+            const checkResults = await db.query("SELECT * FROM users WHERE email = $1",
+                [email]
+            );
             if (checkResults.rows.length > 0) {
-                res.render("login.ejs", { error: "Email already exists, try logging in" });
+                res.render("login.ejs", { error: "Email already exist try logging in" });
             } else {
+                //password hashing
                 bcrypt.hash(password, saltRounds, async (err, hash) => {
                     if (err) {
                         console.log(err);
                     } else {
-                        const result = await db.query(
-                            "INSERT INTO users (email, password, name, phone_number, address) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-                            [email, hash, name, phone_number, address]
+                        //generate the temp 2fa code
+                        const temp_secret = speakeasy.generateSecret();
+                        const result = await db.query("INSERT INTO users (email, password, name, phone_number, address, temp_secret) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+                            [email, hash, temp_secret.base32]
                         );
                         const user = result.rows[0];
                         req.login(user, (err) => {
@@ -51,13 +56,15 @@ router.post("/register", async (req, res) => {
                                 console.log(err);
                             }
                             currentUser = user.user_id;
-                            res.redirect("/login");
+                            console.log(currentUser);
+                            //res.json({ id: currentUser, secret: temp_secret.base32 });  // Send secret
+                            res.redirect("/");
                         });
                     }
                 });
             }
         } catch (err) {
-            console.error("Error registering user:", err);
+            console.error('Error registering user:', err);
             res.status(500).send("Internal Server Error");
         }
     } else {

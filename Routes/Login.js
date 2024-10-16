@@ -6,6 +6,7 @@ import { Fido2Lib } from "fido2-lib";
 import { Strategy } from "passport-local";
 import GoogleStrategy from "passport-google-oauth2";
 import passport from "passport";
+import speakeasy from "speakeasy";
 
 const router = express.Router();
 env.config();
@@ -32,7 +33,7 @@ router.get("/login", (req, res) => {
 // Local login
 router.post("/login",
     passport.authenticate("local", {
-        successRedirect: "/",
+        successRedirect: "/checkLoginStatus",
         failureRedirect: "/login",
     })
 );
@@ -72,7 +73,7 @@ router.get("/auth/google",
 
 router.get("/auth/google/main",
     passport.authenticate("google", {
-        successRedirect: "/",
+        successRedirect: "/checkLoginStatus",
         failureRedirect: "/login",
     })
 );
@@ -91,9 +92,11 @@ passport.use("google",
                     profile.email,
                 ]);
                 if (result.rows.length === 0) {
+                    const temp_secret = speakeasy.generateSecret();
+
                     const newUser = await db.query(
-                        "INSERT INTO users (email, password) VALUES ($1, $2)",
-                        [profile.email, "google"]
+                        "INSERT INTO users (email, password, temp_secret) VALUES ($1, $2, $3)",
+                        [profile.email, "google", temp_secret.base32]
                     );
                     
                     // Save the ID of the newly added user
@@ -102,6 +105,7 @@ passport.use("google",
                     ]);
                     if (checkResults.rows.length > 0) {
                         currentUser = checkResults.rows[0].user_id;
+                        console.log(currentUser);
                     }
                     
                     return cb(null, newUser.rows[0]);

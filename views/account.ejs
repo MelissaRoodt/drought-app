@@ -115,6 +115,28 @@
             </div>
         </div>
 
+        <!-- Enable 2FA Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Enable_2FA</h5>
+            </div>
+            <div class="card-body">
+                <form action="/enable2fa" method="POST">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="flexCheckDefault" name="tfa_enabled" <%= user.tfa_enabled ? 'checked' : '' %>>
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Enable 2FA
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Save Preferences</button>
+                </form>
+                <div class="mt-3">
+                    <strong>Current Status:</strong> <%= user.tfa_enabled ? '2FA is enabled' : '2FA is disabled' %>
+                </div>
+            </div>
+        </div>
+
+
         <!-- Delete Account Section -->
         <div class="card border-danger mb-4">
             <div class="card-header bg-danger text-white">

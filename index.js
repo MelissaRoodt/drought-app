@@ -110,6 +110,16 @@ import accountRoute from "./Routes/Account.js";
 
 app.use("/", accountRoute);
 
+/**=================================================
+ * 2FA route
+===================================================*/
+
+import twoFARoute from "./Routes/2FA.js";
+
+app.use("/", twoFARoute);
+
+/**===============================================*/
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

@@ -21,20 +21,21 @@ db.connect();
 router.get("/account", async (req, res) => {
     if (req.isAuthenticated()) {
         try {
-            const result = await db.query("SELECT email, name, phone_number, address FROM users WHERE user_id = $1", [currentUser]);
+            const result = await db.query("SELECT email, name, phone_number, address, tfa_enabled FROM users WHERE user_id = $1", [currentUser]);
 
             if (result.rows.length === 0) {
                 return res.status(404).send("User not found.");
             }
 
-            const { email, name, phone_number, address } = result.rows[0];
+            const { email, name, phone_number, address, tfa_enabled } = result.rows[0];
 
             res.render("account.ejs", {
                 user: {
                     email: email || "",
                     name: name || "",
                     phone_number: phone_number || "",
-                    address: address || ""
+                    address: address || "",
+                    tfa_enabled: tfa_enabled || false
                 }
             });
         } catch (err) {
