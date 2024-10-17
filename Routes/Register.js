@@ -48,7 +48,7 @@ router.post("/register", async (req, res) => {
                         //generate the temp 2fa code
                         const temp_secret = speakeasy.generateSecret();
                         const result = await db.query("INSERT INTO users (email, password, name, phone_number, address, temp_secret) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-                            [email, hash, temp_secret.base32]
+                            [email, hash, name, phone_number, address, temp_secret.base32]
                         );
                         const user = result.rows[0];
                         req.login(user, (err) => {
