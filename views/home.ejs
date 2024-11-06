@@ -3,10 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Raindrop</title>
+    <title>Raindrop - Global Weather Layers</title>
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
     />
     <style>
       /* Custom CSS */
@@ -27,11 +31,29 @@
         text-align: center;
         padding: 10px 0;
       }
+      #map {
+        height: 500px;
+        margin-top: 20px;
+        width: 100%;
+      }
+      .legend {
+        background: white;
+        padding: 10px;
+        line-height: 1.5;
+        color: black;
+      }
+      .legend i {
+        width: 18px;
+        height: 18px;
+        float: left;
+        margin-right: 8px;
+        opacity: 0.8;
+      }
     </style>
   </head>
   <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" >
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
         <a class="navbar-brand" href="#">Raindrop</a>
         <button
@@ -41,31 +63,22 @@
           data-target="#navbarSupportedContent"
           aria-controls="navbarSupportedContent"
           aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
+          aria-label="Toggle navigation">
+          
           <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item active">
-              <a class="nav-link" href="#"
-                >Home <span class="sr-only">(current)</span></a
-              >
+              <a class="nav-link" href="/home">Home</a>
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="./views/dashboard.html"
-                >Dashboard</a
-              >
+              <a class="nav-link" href="/dashboard">Dashboard</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">About</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Profile</a>
-            </li>
+            <!-- <li class="nav-item">
+              <a class="nav-link" href="/about">About</a>
+            </li> -->
             <li class="nav-item">
               <a class="nav-link" href="/account">Account</a>
             </li>
@@ -79,8 +92,13 @@
 
     <!-- Main Content -->
     <div class="container text-center mt-5">
-      <h1>Raindrop</h1>
-      <p>Wheater Forecast Sytem</p>
+      <h1>Raindrop - Global Weather Layers</h1>
+      <p>Choose between different global weather layers</p>
+    </div>
+
+    <!-- Map -->
+    <div class="container">
+      <div id="map"></div>
     </div>
 
     <!-- Footer -->
@@ -94,5 +112,96 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Leaflet.js -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <!-- Script to Display Multiple Weather Layers -->
+    <script>
+      // Initialize the map, setting the view to a global scale
+      var map = L.map('map').setView([-29.15, 24.61], 5); // View set to global coordinates
+
+      // Add OpenStreetMap tiles
+      var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Define weather layer URLs from OpenWeather (Replace YOUR_API_KEY with your actual API key)
+      var precipitationLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=841242fa2ff62b4c0626cb8758245b44`, {
+        attribution: '&copy; OpenWeatherMap',
+        opacity: 0.6
+      });
+
+      var cloudsLayer = L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=841242fa2ff62b4c0626cb8758245b44`, {
+        attribution: '&copy; OpenWeatherMap',
+        opacity: 0.6
+      });
+
+      var temperatureLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=841242fa2ff62b4c0626cb8758245b44`, {
+        attribution: '&copy; OpenWeatherMap',
+        opacity: 0.6
+      });
+
+      var globalPrecipitationLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png?appid=841242fa2ff62b4c0626cb8758245b44`, {
+        attribution: '&copy; OpenWeatherMap',
+        opacity: 0.6
+      });
+
+      // Add a layer control to switch between layers
+      var overlayMaps = {
+        "Precipitation": precipitationLayer,
+        "Global Precipitation": globalPrecipitationLayer,
+        "Clouds": cloudsLayer,
+        "Temperature": temperatureLayer
+      };
+
+      var layerControl = L.control.layers(null, overlayMaps).addTo(map);
+
+      // Add legend
+      var legend = L.control({ position: 'bottomright' });
+
+      legend.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'legend');
+        div.innerHTML += '<h4>Weather Intensity</h4>';
+        div.innerHTML += '<i style="background: #00f;"></i><span>Light Rain</span><br>';
+        div.innerHTML += '<i style="background: #0f0;"></i><span>Moderate Rain</span><br>';
+        div.innerHTML += '<i style="background: #f00;"></i><span>Heavy Rain</span><br>';
+        div.innerHTML += '<i style="background: #ff0;"></i><span>Low Clouds</span><br>';
+        div.innerHTML += '<i style="background: #888;"></i><span>Moderate Clouds</span><br>';
+        div.innerHTML += '<i style="background: #444;"></i><span>Heavy Clouds</span><br>';
+        div.innerHTML += '<i style="background: #fff;"></i><span>Low Temp</span><br>';
+        div.innerHTML += '<i style="background: #ffa500;"></i><span>Moderate Temp</span><br>';
+        div.innerHTML += '<i style="background: #ff0000;"></i><span>High Temp</span><br>';
+        return div;
+      };
+
+      legend.addTo(map);
+
+      // Update the legend based on the selected layer
+      layerControl.on('overlayadd', function(e) {
+        var div = L.DomUtil.create('div', 'legend');
+        if (e.layer === precipitationLayer || e.layer === globalPrecipitationLayer) {
+          div.innerHTML += '<h4>Precipitation Intensity</h4>';
+          div.innerHTML += '<i style="background: #00f;"></i><span>Light Rain</span><br>';
+          div.innerHTML += '<i style="background: #0f0;"></i><span>Moderate Rain</span><br>';
+          div.innerHTML += '<i style="background: #f00;"></i><span>Heavy Rain</span><br>';
+        } else if (e.layer === cloudsLayer) {
+          div.innerHTML += '<h4>Cloud Coverage</h4>';
+          div.innerHTML += '<i style="background: #ff0;"></i><span>Low Clouds</span><br>';
+          div.innerHTML += '<i style="background: #888;"></i><span>Moderate Clouds</span><br>';
+          div.innerHTML += '<i style="background: #444;"></i><span>Heavy Clouds</span><br>';
+        } else if (e.layer === temperatureLayer) {
+          div.innerHTML += '<h4>Temperature (°C)</h4>';
+          div.innerHTML += '<i style="background: #fff;"></i><span>Low Temp</span><br>';
+          div.innerHTML += '<i style="background: #ffa500;"></i><span>Moderate Temp</span><br>';
+          div.innerHTML += '<i style="background: #ff0000;"></i><span>High Temp</span><br>';
+        }
+        L.DomUtil.remove(legend.getContainer());
+        legend.addTo(map);
+      });
+
+      // Add the precipitation layer as the default layer
+      precipitationLayer.addTo(map);
+    </script>
   </body>
 </html>

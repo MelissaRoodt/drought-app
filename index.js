@@ -1,17 +1,19 @@
 import express from "express";
 import bodyParser from "body-parser";
-import bcrypt from "bcrypt";
 import env from "dotenv";
 import pg from "pg";
 import session from "express-session";//create user session (cookies)
 import passport from "passport";//used to authenticate
+<<<<<<< HEAD
 import { Strategy } from "passport-local";//authenticate strategy (local)
 import GoogleStrategy from "passport-google-oauth2";//authenticate strategy (google)
 import speakeasy from "speakeasy";
+=======
+import { currentUser } from "./Routes/Login.js";
+>>>>>>> Routes
 
 const app = express();
 const port = 3000;
-const saltRounds = 10;//use this amount in register
 env.config();
 
 app.set("view engine", "ejs");
@@ -39,9 +41,6 @@ const db = new pg.Client({
 });
 db.connect();
 
-let currentUser = 0;
-let userEmail = "";
-
 app.get("/", (req, res) => {
     if (req.isAuthenticated()) {
         res.render("home.ejs");
@@ -50,14 +49,23 @@ app.get("/", (req, res) => {
     }
 });
 
-app.get("/login", (req, res) => {
-    res.render("login.ejs");
+app.get("/home", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("home.ejs");
+    } else {
+        res.redirect("/login");
+    }
 });
 
-app.get("/register", (req, res) => {
-    res.render("register.ejs");
+app.get("/about", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("about.ejs");
+    } else {
+        res.redirect("/login");
+    }
 });
 
+<<<<<<< HEAD
 //2fa end point: Verify initial 2fa !happens once!
 app.get("/2fa/verify", (req, res) => {
     res.render("2faVerify.ejs");
@@ -114,6 +122,15 @@ app.get("/auth/google/main",
         failureRedirect: "/login",
     })
 );
+=======
+app.get("/dashboard", (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render("dashboard.ejs");
+    } else {
+        res.redirect("/login");
+    }
+});
+>>>>>>> Routes
 
 //Logout 
 app.get("/logout", (req, res) => {
@@ -125,6 +142,7 @@ app.get("/logout", (req, res) => {
     });
 });
 
+<<<<<<< HEAD
 // Local register Strategy
 app.post("/register", async (req, res) => {
     const email = req.body.username;
@@ -336,6 +354,8 @@ app.post("/2fa/validate", async (req, res) => {
     }
 });
 
+=======
+>>>>>>> Routes
 //Session Management -> save user to local session
 passport.serializeUser((user, cb) => {
     cb(null, user);
@@ -346,32 +366,52 @@ passport.deserializeUser((user, cb) => {
 });
 
 /**=================================================
- * Account 
- ===================================================*/
-app.get("/account", (req, res) => {
-    res.render("account.ejs");
-});
+ * Login route
+===================================================*/
 
+<<<<<<< HEAD
 app.get("/delete", async (req, res) => {
     if (req.isAuthenticated()) {
         try {
             const resultReview = await db.query("DELETE FROM users WHERE user_id = " + currentUser);
+=======
+import loginRoute from "./Routes/Login.js";
+>>>>>>> Routes
 
-            if (resultReview.rowCount === 0) {
-                console.log(`No user deleted with id ${req.params.id}`);
-                res.status(404).send('User not found');
-                return;
-            }
-            res.redirect("/Logout");
-        } catch (err) {
-            console.error('Error deleting user:', err);
-            res.status(500).send('Internal Server Error');
-        }
+app.use("/", loginRoute);
 
+<<<<<<< HEAD
     } else {
         res.redirect("/login");
     }
 })
+=======
+/**=================================================
+ * Register route
+===================================================*/
+
+import registerRoute from "./Routes/Register.js";
+
+app.use("/", registerRoute);
+
+/**=================================================
+ * Account route
+===================================================*/
+
+import accountRoute from "./Routes/Account.js";
+
+app.use("/", accountRoute);
+
+/**=================================================
+ * 2FA route
+===================================================*/
+
+import twoFARoute from "./Routes/2FA.js";
+
+app.use("/", twoFARoute);
+
+/**===============================================*/
+>>>>>>> Routes
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
@@ -382,9 +422,7 @@ app.listen(port, () => {
  * Google Login (OAuth+Passport)
  * Secure Practices in Code (Enviroment variables)
  * Sessions
- * 
- * Upcoming Features:
- * Password Reset
- * 2FA authentication
  * Biometric Authentication
+ * Password reset
+ * 2FA authentication
  */

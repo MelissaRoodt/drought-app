@@ -17,33 +17,24 @@
             data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent"
             aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
+            aria-label="Toggle navigation">
+
             <span class="navbar-toggler-icon"></span>
           </button>
   
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="/home">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+              </li>
+              <!-- <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+              </li> -->
               <li class="nav-item active">
-                <a class="nav-link" href="#"
-                  >Home <span class="sr-only">(current)</span></a
-                >
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  href="./views/dashboard.html"
-                  >Dashboard</a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">About</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Profile</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/accounts">Account</a>
+                <a class="nav-link" href="/account">Account</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
@@ -56,6 +47,9 @@
 
     <div class="container mt-5">
         <h1 class="text-center mb-4">User Settings</h1>
+
+        <div id="success-message" class="alert alert-success" style="display: none;"></div>
+        <div id="alert-message" class="alert" style="display: none;"></div>
 
         <!-- Change Password Section -->
         <div class="card mb-4">
@@ -89,8 +83,8 @@
             <div class="card-body">
                 <form action="/update-email" method="POST">
                     <div class="form-group">
-                        <label for="new-email">New Email Address:</label>
-                        <input type="email" class="form-control" id="new-email" name="new-email" required>
+                        <label for="email">Email Address:</label>
+                        <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Update Email</button>
                 </form>
@@ -106,41 +100,43 @@
                 <form action="/update-info" method="POST">
                     <div class="form-group">
                         <label for="name">Name:</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" required>
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number:</label>
-                        <input type="tel" class="form-control" id="phone" name="phone">
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number" value="<%= user.phone_number %>">
                     </div>
                     <div class="form-group">
                         <label for="address">Address:</label>
-                        <textarea class="form-control" id="address" name="address"></textarea>
+                        <textarea class="form-control" id="address" name="address"><%= user.address %></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Update Information</button>
                 </form>
             </div>
         </div>
 
-        <!-- Manage Notification Preferences Section -->
+        <!-- Enable 2FA Section -->
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Manage Notification Preferences</h5>
+                <h5 class="mb-0">Enable_2FA</h5>
             </div>
             <div class="card-body">
-                <form action="/update-notifications" method="POST">
+                <form action="/enable2fa" method="POST">
                     <div class="form-check">
-                        <input type="radio" class="form-check-input" id="email-notifications" name="notifications">
-                        <label class="form-check-label" for="email-notifications">Email Notifications</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="radio" class="form-check-input" id="sms-notifications" name="notifications">
-                        <label class="form-check-label" for="sms-notifications">SMS Notifications</label>
+                        <input class="form-check-input" type="checkbox" id="flexCheckDefault" name="tfa_enabled" <%= user.tfa_enabled ? 'checked' : '' %>>
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Enable 2FA
+                        </label>
                     </div>
                     <button type="submit" class="btn btn-primary mt-3">Save Preferences</button>
                 </form>
+                <div class="mt-3">
+                    <strong>Current Status:</strong> <%= user.tfa_enabled ? '2FA is enabled' : '2FA is disabled' %>
+                </div>
             </div>
         </div>
 
+<<<<<<< HEAD
         <!-- Enable 2FA Section -->
         <div class="card mb-4">
             <div class="card-header">
@@ -158,6 +154,8 @@
                 </form>
             </div>
         </div>
+=======
+>>>>>>> Routes
 
         <!-- Delete Account Section -->
         <div class="card border-danger mb-4">
@@ -176,5 +174,43 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Script to handle success message and refresh the page -->
+    <script>
+        // Function to check for query parameters and display messages
+        function showMessageAndRefresh() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+
+            if (message) {
+                const alertMessageDiv = document.getElementById('alert-message');
+                alertMessageDiv.textContent = decodeURIComponent(message);
+                alertMessageDiv.className = 'alert alert-warning'; // For error messages
+
+                if (message.includes('successfully')) {
+                    alertMessageDiv.className = 'alert alert-success'; // Success case
+                    setTimeout(() => {
+                        window.location.href = '/account'; // Refresh without query params
+                    }, 3000);
+                } else {
+                    alertMessageDiv.style.display = 'block'; // Show the message for errors
+                }
+            }
+
+            if (message) {
+                const successMessageDiv = document.getElementById('success-message');
+                successMessageDiv.textContent = decodeURIComponent(message);
+                successMessageDiv.style.display = 'block';
+
+                // Automatically refresh the page after 3 seconds
+                setTimeout(() => {
+                    window.location.href = '/account'; // Refresh without query params
+                }, 3000);
+            }
+        }
+
+        // Call the function on page load
+        window.onload = showMessageAndRefresh;
+    </script>
 </body>
 </html>

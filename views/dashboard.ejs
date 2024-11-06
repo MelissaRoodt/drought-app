@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard with Drought Prediction</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            background: #fccb90;
+            background: -webkit-linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+            background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+        .sidebar {
+            background-color: #2c2c2e;
+            height: 100vh;
+            position: fixed;
+            width: 250px;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #f5f5f5;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #3a3a3c;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+        .main-content {
+            margin-left: 100px;
+            margin-right: 100px;
+            padding: 20px;
+        }
+        .card {
+            background-color: rgba(44, 44, 46, 0.8);
+            border: none;
+        }
+        #map {
+            height: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+          <a class="navbar-brand" href="#">Raindrop</a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+  
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="/home">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+              </li>
+              <!-- <li class="nav-item">
+                <a class="nav-link" href="/about">About</a>
+              </li> -->
+              <li class="nav-item">
+                <a class="nav-link" href="/account">Account</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/logout">Logout</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="#">Dashboard: <span id="cityName">City</span></a>
+            <form class="form-inline">
+                <input class="form-control mr-2" type="search" id="cityInput" placeholder="Enter city name" aria-label="Search">
+                <button class="btn btn-outline-success" type="button" id="searchButton">Search</button>
+            </form>
+        </nav>
+
+        <div class="row mt-3">
+            <div class="col-md-8">
+                <div class="card" id="weatherCard" style="display: none;">
+                    <div class="card-header">
+                        Current Weather
+                    </div>
+                    <div class="card-body">
+                        <h3 id="currentTemperature">-- °C</h3>
+                        <p>Feels like: <span id="feelsLike">-- °C</span></p>
+                        <p>Humidity: <span id="humidity">--%</span></p>
+                        <p>Pressure: <span id="pressure">-- hPa</span></p>
+                        <p>Wind Speed: <span id="windSpeed">-- m/s</span></p>
+                    </div>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Alerts and Bulletins
+                    </div>
+                    <div class="card-body">
+                        <h5>Alerts</h5>
+                        <div id="alerts">
+                            <p>No alerts available.</p>
+                        </div>
+                        <h5>Bulletins</h5>
+                        <div id="bulletins">
+                            <p>No bulletins available.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Drought Prediction AI Planner Section -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        Drought Prediction AI Planner
+                    </div>
+                    <div class="card-body">
+                        <p id="droughtPredictionResult">Drought prediction result will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <span>@raindrop 2024</span>
+        </div>
+    </footer>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        const apiKey = '841242fa2ff62b4c0626cb8758245b44'; // Replace with your OpenWeather API key
+        const geocodingApiUrl = 'https://api.openweathermap.org/data/2.5/weather?q=';
+        const oneCallApiUrl = 'https://api.openweathermap.org/data/2.5/onecall?';
+        const defaultCity = 'Vanderbijlpark'; // Set your default city here
+
+        // NASA Earthdata API - Use the GLDAS dataset for more accurate drought prediction
+        let lat = 2;
+        let lon = 45;
+
+        const nasaApiUrl = `https://api.nasa.gov/planetary/earth/imagery?lon=${lon}&lat=${lat}&date=2014-02-01&api_key=efGWSTaB5pnk6Z7oHHcr3h9VG4HGcWl6wH3rxSvuk`;
+        const nasaApiKey = 'efGWSTaB5pnk6Z7oHHcr3h9VG4HGcWl6wH3rxSvuk';
+
+        // Initialize map
+        let map = L.map('map').setView([0, 0], 2); // Default view
+
+        // Function to fetch weather data based on city name
+        async function fetchWeatherData(city) {
+            try {
+                const response = await fetch(`${geocodingApiUrl}${city}&appid=${apiKey}&units=metric`);
+                const data = await response.json();
+
+                if (data.cod === 200) {
+                    const { main, wind, coord } = data;
+
+                    // Update weather information
+                    document.getElementById('currentTemperature').innerText = `${main.temp} °C`;
+                    document.getElementById('feelsLike').innerText = `${main.feels_like} °C`;
+                    document.getElementById('humidity').innerText = `${main.humidity}%`;
+                    document.getElementById('pressure').innerText = `${main.pressure} hPa`;
+                    document.getElementById('windSpeed').innerText = `${wind.speed} m/s`;
+                    document.getElementById('cityName').innerText = data.name; // Update city name in navbar
+
+                    // Show the weather card
+                    document.getElementById('weatherCard').style.display = 'block';
+
+                    // Update the map view
+                    map.setView([coord.lat, coord.lon], 10);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
+
+                    // Add marker for the city
+                    L.marker([coord.lat, coord.lon]).addTo(map).bindPopup(data.name).openPopup();
+
+                    // Trigger drought prediction
+                    fetchDroughtPrediction(coord.lat, coord.lon);
+                } else {
+                    alert('City not found. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+            }
+        }
+
+        // Function to fetch drought prediction data using NASA Earthdata
+        async function fetchDroughtPrediction(lat, lon) {
+            try {
+                const response = await fetch(`${nasaApiUrl}?lat=${lat}&lon=${lon}&apikey=${nasaApiKey}`);
+                const data = await response.json();
+
+                if (data) {
+                    const soilMoisture = data.soil_moisture; // Example: retrieving soil moisture
+                    const precipitation = data.precipitation;
+                    const landTemperature = data.land_temperature;
+
+                    // More sophisticated drought prediction logic using NASA data
+                    let predictionMessage = `Drought Prediction: `;
+                    if (soilMoisture < 20 && precipitation < 5 && landTemperature > 30) {
+                        predictionMessage += "High risk of drought.";
+                    } else if (soilMoisture < 50 && precipitation < 10) {
+                        predictionMessage += "Moderate risk of drought.";
+                    } else {
+                        predictionMessage += "Low risk of drought.";
+                    }
+                    document.getElementById('droughtPredictionResult').innerText = predictionMessage;
+                } else {
+                    document.getElementById('droughtPredictionResult').innerText = "No data available.";
+                }
+            } catch (error) {
+                console.error('Error fetching drought prediction data:', error);
+                document.getElementById('droughtPredictionResult').innerText = "Error fetching drought prediction.";
+            }
+        }
+
+        // Event listener for search button
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const city = document.getElementById('cityInput').value.trim();
+            if (city) {
+                fetchWeatherData(city);
+            } else {
+                alert('Please enter a city name.');
+            }
+        });
+
+        // Fetch default city weather on page load
+        window.onload = () => {
+            fetchWeatherData(defaultCity);
+        };
+    </script>
+</body>
+</html>
