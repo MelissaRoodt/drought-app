@@ -24,6 +24,6 @@ More information about the system's main sections is provided below:
 ![Alt text](/Resources/dash-home.jpg?raw=true "Dashboard")
 - The two images above display the home page and dashboard of the application. Users will only be presented with these pages once they have created and logged into an account. The homepage displays a world map indicating weather intensity. The dashboard shows the current weather conditions with a world map and an AI-based drought prediction planner.
 
-![Alt text](/Resources/user-setting.jpg?raw=true "Dashboard")
+![Alt text](/Resources/user-settings.jpg?raw=true "Dashboard")
 ![Alt text](/Resources/user-setting-2.jpg?raw=true "Dashboard")
 - The two images above show the account screen. Here, users can update and manage account details such as their email address, personal information, and password. Users can also enable two-factor authentication to enhance account security. Additionally, an option to delete the account is available. Any updates or changes made to an account on this screen will be reflected in the database as well.
