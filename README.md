@@ -7,6 +7,7 @@ The DMS interface is organized into the following main sections:
 
 More information about the system's main sections is provided below:
 
+![Alt text](/Resources/register.png?raw=true "Dashboard")
 - If this is the user's first time on the application, or if they would like to create a new account, they will be required to complete all user details, notification preferences, and acknowledgements to register an account correctly. This process is illustrated below.
 
 - If users enable two-factor authentication (2FA), they will be presented with a unique 2FA secret key, which will be used to complete the 2FA setup via an authenticator application (such as Google Authenticator). Once the key is entered into the authenticator application, a one-time password (OTP) will be generated. This process is described below.
